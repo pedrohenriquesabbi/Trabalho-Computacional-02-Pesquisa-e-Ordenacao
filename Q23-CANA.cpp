@@ -1,149 +1,188 @@
 /*
-  Trabalho de Estrutura de Dados
-  Alunos:
+TRABALHO COMPUTACIONAL 02 
+– 
+PESQUISA E ORDENAÇÃO 
+Disciplina: C.A.N.A
+  Alunos Responsável pela questão:
     - Pedro Henrique Sabi
-    - Nome do colega 2
-    - Nome do colega 3
+    Equipe: 
+    - Jéssica Carvalho e Silva
+    - Allyson Keveny Medeiros Félix
+    - João Lucas de Albuquerque Gabriel
+    - Pedro Henrique Silveira Gomes Sabi 
+    - Francisco Wellesson Bezerra da Silva
 */
+//QUESTÃO 23 
+//Implemente em C/C++ os algoritmos de busca sequencial e binária para listas duplamente encadeadas
 
-#include <iostream>
-using namespace std;
+#include <iostream> 
+#include <utility>  
 
-// Estrutura do no da lista duplamente encadeada
-// Cada elemento da lista é representado por um nó.
+//Estrutura do nó da Lista Duplamente Encadeada
 struct No {
-    int valor;
-    No* anterior;
-    No* proximo;
+    int valor;    
+    No* anterior; 
+    No* proximo;  
 
+    // Construtor de um novo nó com valor
     No(int val) {
         valor = val;
-        anterior = nullptr;
-        proximo = nullptr;
+        anterior = nullptr; 
+        proximo = nullptr;  
     }
 };
 
-// Classe da lista duplamente encadeada
+//gerencia a colecao de nos, permitindo operacoes como insercao, impressao e busca
 class ListaDupla {
 public:
-    No* inicio;
-    No* fim;
+    No* inicio; 
+    No* fim;    
 
-    //CONSTRUTOR: Inicializa a lista como vazia
+    //inicializa a lista vazia
     ListaDupla() {
         inicio = nullptr;
         fim = nullptr;
     }
 
-    //DESTRUTOR: Libera memoria alocada
+    //destrutor: libera toda a memoria alocada
     ~ListaDupla() {
-        No* atual = inicio;
-        while (atual != nullptr) {
-            No* proximo = atual->proximo;
-            delete atual;
-            atual = proximo;
+        No* atual = inicio; 
+        while (atual != nullptr) { //enquanto houver nós na lista
+            No* proximoNo = atual->proximo; //salva o ponteiro para o proximo nó
+            delete atual;                   //libera a memoria do nó atual
+            atual = proximoNo;              //move para o proximo nó a ser liberado
         }
-        inicio = nullptr;
-        fim = nullptr;
+        inicio = nullptr; 
+        fim = nullptr;    
     }
 
-    // cria um novo nó
-    //se estiver vazia, vira o início e se já tiver elementos, vai para o fim 
+    //Insere um novo valor no final da lista
     void inserir(int val) {
-        No* novo = new No(val);
-        if (!inicio) {
-            inicio = fim = novo;
-        } else {
-            fim->proximo = novo;
-            novo->anterior = fim;
-            fim = novo;
+        No* novo = new No(val); //cria um novo no com o valor forneciddo
+        if (!inicio) {          //se a lista estiver vazia, o novo nó e tanto o inicio quanto o fim da lista
+            inicio = fim = novo; 
+        } else {                 // Se a lista ja tem nós
+            fim->proximo = novo;   //o ultimo aponta pro novo nó
+            novo->anterior = fim;  //o novo nó aponta pro último nó
+            fim = novo;            //o novo fim é o novo nó 
         }
     }
-    //perccore toda a lista printando cada item 
+
+    // Imprime todos os valores 
     void imprimir() {
-        No* atual = inicio;
-        while (atual != nullptr) {
-            cout << atual->valor << " ";
-            atual = atual->proximo;
+        No* atual = inicio; 
+        if (atual == nullptr) { 
+            std::cout << "Lista vazia." << std::endl;
+            return;
         }
-        cout << endl;
+        std::cout << "Elementos da Lista: ";
+        while (atual != nullptr) { 
+            std::cout << atual->valor << " "; 
+            atual = atual->proximo;           
+        }
+        std::cout << std::endl;
     }
 
-    // Busca sequencial
-    No* buscaSequencial(int alvo) {
-        No* atual = inicio;
-        while (atual != nullptr) {
-            if (atual->valor == alvo)
-                return atual;
-            atual = atual->proximo;
+    //Busca Sequencial:percorre a lista nó por nó, procurando um valor específico
+    std::pair<No*, int> buscaSequencial(int alvo) {
+        No* atual = inicio; 
+        int iteracoes = 0;  
+        while (atual != nullptr) { 
+            iteracoes++;           
+            if (atual->valor == alvo) { 
+                return {atual, iteracoes}; //se achar o valor retorna o ponteiro e a contagem
+            }
+            atual = atual->proximo; //passa para o proximo nó
         }
-        return nullptr;
+        return {nullptr, iteracoes}; //Se o alvo nao for encontrado, retorna null e as iterações
     }
 
-    // Funcao auxiliar para encontrar o meio
-    No* encontrarMeio(No* inicio, No* fim) {
-        if (!inicio) return nullptr;
+    // Função Auxiliar para Busca Binária: busca o nó do meio
+    std::pair<No*, int> encontrarMeio(No* inicioSegmento, No* fimSegmento) {
+        if (!inicioSegmento) return {nullptr, 0}; //se o segmento e vazio, nao tem meio
 
-        No* lento = inicio;
-        No* rapido = inicio;
+        No* lento = inicioSegmento;  
+        No* rapido = inicioSegmento; 
+        int iteracoes = 0;           // Contador de iteracoes para encontrar o meio.
 
-        while (rapido != fim && rapido->proximo != fim) {
+        while (rapido != fimSegmento && rapido->proximo != fimSegmento) {
             rapido = rapido->proximo;
-            if (rapido != fim)
+            if (rapido != fimSegmento) { // Garante que o rapido nao passe do fim ao dar o segundo passo.
                 rapido = rapido->proximo;
-            lento = lento->proximo;
+            }
+            lento = lento->proximo; 
+            iteracoes++;            
         }
-        return lento;
+        return {lento, iteracoes}; // Retorna o nó do meio e a contagem de iterações
     }
 
-    // Busca binaria recursiva
-    No* buscaBinaria(No* inicio, No* fim, int alvo) {
-        if (!inicio || inicio == fim->proximo) return nullptr;
+    //Busca Binaria:Procura um valor alvo em um segmento ordenado da lista duplamente encadeada.
+    std::pair<No*, int> buscaBinaria(No* inicioSegmento, No* fimSegmento, int alvo) {//a função já assume que a lista ordenada
+        return buscaBinariaHelper(inicioSegmento, fimSegmento, alvo, 0); // Chama a funcao auxiliar com contador inicial.
+    }
 
-        No* meio = encontrarMeio(inicio, fim);
+private:    
+    std::pair<No*, int> buscaBinariaHelper(No* inicioSegmento, No* fimSegmento, int alvo, int iteracoesAcumuladas) {
+        // Caso Base 1: Segmento e vazio ou invalido (inicio passou do fim)
+        // Isso indica que o alvo nao esta no segmento
+        if (!inicioSegmento || inicioSegmento == fimSegmento->proximo) {
+            return {nullptr, iteracoesAcumuladas};
+        }
 
-        if (!meio) return nullptr;
+        //encontra o no do meio no segmento atual, e pega suas iteracoes internas
+        std::pair<No*, int> meioResultado = encontrarMeio(inicioSegmento, fimSegmento);
+        No* meio = meioResultado.first;
+        iteracoesAcumuladas += meioResultado.second; //add as iteracoes de 'encontrarMeio'
 
-        if (meio->valor == alvo)
-            return meio;
-        else if (meio->valor < alvo)
-            return buscaBinaria(meio->proximo, fim, alvo);
-        else
-            return buscaBinaria(inicio, meio->anterior, alvo);
+        // Caso Base 2: Se 'meio' for nulo (nao deveria ocorrer se 'inicioSegmento' nao for nulo).
+        if (!meio) return {nullptr, iteracoesAcumuladas};
+
+        iteracoesAcumuladas++; // Incrementa para a comparacao do valor do meio.
+        // Se o valor no meio é o alvo, encontramos!
+        if (meio->valor == alvo) {
+            return {meio, iteracoesAcumuladas};
+        } else if (meio->valor < alvo) {
+            // Se o valor do meio for menor que o alvo, o alvo deve estar na metade direita do segmento.
+            // A busca continua do no seguinte ao meio ate o fim do segmento.
+            return buscaBinariaHelper(meio->proximo, fimSegmento, alvo, iteracoesAcumuladas);
+        } else { // (meio->valor > alvo)
+            // Se o valor do meio for maior que o alvo, o alvo deve estar na metade esquerda do segmento.
+            // A busca continua do inicio do segmento ate o no anterior ao meio.
+            return buscaBinariaHelper(inicioSegmento, meio->anterior, alvo, iteracoesAcumuladas);
+        }
     }
 };
 
-// Funcao principal para testar
 int main() {
     ListaDupla lista;
 
-    // Inserir elementos ordenados para permitir busca binaria
-    for(int i = 0; i < 101; i++)
-    {
-        lista.inserir(i);
+    for (int i = 1; i <= 1000; ++i) {
+        lista.inserir(i);     // Popula a lista 
     }
-    
 
-    cout << "Lista: ";
-    lista.imprimir();
+    int alvo_buscado; 
 
-    cout << "Insira um valor de 1 a 100 para ser o alvo: ";
-    int alvo;
-    cin >> alvo;
+    std::cout << "\n--- Teste de Busca na Lista Duplamente Encadeada ---" << std::endl;
+    std::cout << "\nDigite o valor alvo (entre 1 e 1.000): ";
+    std::cin >> alvo_buscado; //Pede o Valor Alvo Para o Usuário
 
-    // Teste de busca sequencial
-    No* resultadoSeq = lista.buscaSequencial(alvo);
-    if (resultadoSeq)
-        cout << "Busca sequencial: Encontrado " << resultadoSeq->valor << endl;
-    else
-        cout << "Busca sequencial: Nao encontrado\n";
+    auto resultadoSeq = lista.buscaSequencial(alvo_buscado);
+    if (resultadoSeq.first) {
+        std::cout << "\n\nBusca Sequencial: Valor Encontrado:  " << resultadoSeq.first->valor
+                  << ". QTD Iteracoes: " << resultadoSeq.second << std::endl;
+    } else {
+        std::cout << "\n\nBusca Sequencial: Valor Encontrado:  " << alvo_buscado << " nao encontrado."
+                  << " QTD Iteracoes: " << resultadoSeq.second << std::endl;
+    }
 
-    // Teste de busca binaria
-    No* resultadoBin = lista.buscaBinaria(lista.inicio, lista.fim, alvo);
-    if (resultadoBin)
-        cout << "Busca binaria: Encontrado " << resultadoBin->valor << endl;
-    else
-        cout << "Busca binaria: Nao encontrado\n";
+    auto resultadoBin = lista.buscaBinaria(lista.inicio, lista.fim, alvo_buscado);
+    if (resultadoBin.first) {
+        std::cout << "\n\nBusca Binaria: Valor Encontrado:  " << resultadoBin.first->valor
+                  << ". QTD Iteracoes: " << resultadoBin.second << std::endl;
+    } else {
+        std::cout << "\n\nBusca Binaria: Valor " << alvo_buscado << " nao encontrado."
+                  << " QTD Iteracoes: " << resultadoBin.second << std::endl;
+    }
 
     return 0;
 }
